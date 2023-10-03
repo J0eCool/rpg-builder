@@ -3,13 +3,27 @@
   "version": "1.0.0",
   "description": "IDE for making FF-style retro games",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc --watch --preserveWatchOutput",
+    "webpack": "npx webpack -w",
+    "start": "nodemon build/app.js"
   },
   "author": "",
   "license": "WTFPL",
   "devDependencies": {
+    "@types/express": "^4.17.18",
     "@types/node": "^20.6.3",
+    "@types/react": "^18.2.24",
+    "@types/react-dom": "^18.2.8",
+    "nodemon": "^3.0.1",
+    "ts-loader": "^9.4.4",
     "ts-node": "^10.9.1",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   }
 }
