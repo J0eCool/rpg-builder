@@ -1,9 +1,21 @@
-import React from "react"
+import React, { FC, useState } from "react"
 
-let messages = []
+interface User {
+    name: string,
+    color: string,
+}
 
-const App: React.FC = () => {
-    return <h1>Hello <i>from</i> React</h1>
+const UserProfile = ({user}: {user: User}) => {
+    let style: React.CSSProperties = {
+        color: user.color
+    }
+    return <div>
+        <div style={style}>{user.name}</div>
+    </div>
+}
+
+const App: FC = () => {
+    return <UserProfile user={{name: "J0eCool", color: "red"}} />
 }
 
 export default App
