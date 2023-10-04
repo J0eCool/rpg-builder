@@ -41,6 +41,26 @@ function nextUserId(users: User[]) {
   return 1 + users.reduce((id, user) => Math.max(id, user.id), 0)
 }
 
+const ColorPicker = ({color, setColor}:
+    {color: string, setColor: (color: string) => void}) => {
+  const colors = [
+    'black',
+    'red',
+    'blue',
+    'purple',
+    'orange',
+    'yellow',
+    'green',
+  ]
+  return <>
+    <span style={{color}}>{color}</span>
+    <br />
+    {colors.map((c, idx) => <button key={idx} onClick={() => setColor(c)}>
+      {c}
+    </button>)}
+  </>
+}
+
 /**
  * an application/widget intended to quickly switch between users and edit how
  * their userprofile looks
@@ -97,9 +117,7 @@ const EditProfileApp = () => {
 
   const AddUserButton = () => {
     return !hasChanges ? <></> : <button onClick={() => {
-      // let next = Array.from(users)
-      let next = {...currentUser}
-      next.id = nextUserId(users)
+      const next = {...currentUser, id: nextUserId(users)}
       users.push(next)
       setUsers(users)
       setOldUser(next)
@@ -115,16 +133,16 @@ const EditProfileApp = () => {
       <SyncToServerButton />
     </div>
     <div>
-      Logged in as <UserBadge user={oldUser} />
-      <br />
+      Logged in as <UserBadge user={oldUser} /><br />
       Username: <input value={currentUser.name} onChange={(e) => {
         let next = {...currentUser}
         next.name = e.target.value
         setCurrentUser(next)
-      }} />
-      <br />
-      <SaveChangesButton />
-      <br />
+      }} /><br />
+      Color: <ColorPicker color={currentUser.color} setColor={(color) => {
+        setCurrentUser({ ...currentUser, color })
+      }} /><br />
+      <SaveChangesButton /><br />
       <AddUserButton />
     </div>
     <UserSwitcher
