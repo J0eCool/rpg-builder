@@ -13,7 +13,10 @@ interface User {
  */
 const UserBadge = ({user}: {user: User}) => {
   let style: React.CSSProperties = {
-    color: user.color
+    color: user.color,
+    fontWeight: 'bold',
+    fontFamily: 'monospace',
+    fontSize: 'large',
   }
   return <span style={style}>{user.name}</span>
 }
@@ -68,8 +71,9 @@ const ColorPicker = ({color, setColor}:
 const EditProfileApp = () => {
   const usersUrl = 'data/users.json'
   const [users, setUsers] = useState<User[]>()
-  const [oldUser, setOldUser] = useState<User>()
-  const [currentUser, setCurrentUser] = useState<User>()
+  const [user, setUser] = useState<User>()
+  const [name, setName] = useState<string>('Anon')
+  const [color, setColor] = useState<string>('black')
 
   useEffect(() => {
     console.log('fetching user data')
@@ -77,12 +81,14 @@ const EditProfileApp = () => {
     .then((res) => res.json())
     .then((users: User[]) => {
       setUsers(users)
-      setOldUser(users[0])
-      setCurrentUser(users[0])
+      let user = users[0]
+      setUser(user)
+      setName(user.name)
+      setColor(user.color)
     })
   }, [])
   
-  if (!users || !oldUser || !currentUser) {
+  if (!users || !user) {
     return <>loading</>
   }
 
@@ -93,23 +99,23 @@ const EditProfileApp = () => {
         body: JSON.stringify(users, undefined, 2)
       })
     }}>
-      Push Changes
+      Push All Changes
     </button>
   }
 
-  const hasChanges = currentUser.name != oldUser.name ||
-    currentUser.color != oldUser.color
+  const hasChanges = user.name != name ||
+    user.color != color
   
   const SaveChangesButton = () => {
     return !hasChanges ? <></> : <button onClick={() => {
-      let u = users.find((user) => user.id == currentUser.id)
+      let u = users.find((u) => u.id == user.id)
       if (!u) {
         throw 'uh oh'
       }
-      u.name = currentUser.name
-      u.color = currentUser.color
+      u.name = name
+      u.color = color
+      setUser({...u})
       setUsers(users)
-      setOldUser(currentUser)
     }}>
       Save
     </button>
@@ -117,11 +123,14 @@ const EditProfileApp = () => {
 
   const AddUserButton = () => {
     return !hasChanges ? <></> : <button onClick={() => {
-      const next = {...currentUser, id: nextUserId(users)}
+      const next = {
+        id: nextUserId(users),
+        name,
+        color,
+      }
       users.push(next)
       setUsers(users)
-      setOldUser(next)
-      setCurrentUser(next)
+      setUser(next)
     }}>
       Add as New User
     </button>
@@ -133,27 +142,28 @@ const EditProfileApp = () => {
       <SyncToServerButton />
     </div>
     <div>
-      Logged in as <UserBadge user={oldUser} /><br />
-      Username: <input value={currentUser.name} onChange={(e) => {
-        let next = {...currentUser}
-        next.name = e.target.value
-        setCurrentUser(next)
+      Logged in as <UserBadge user={user} /><br />
+      Username: <input value={name} onChange={(e) => {
+        setName(e.target.value)
       }} /><br />
-      Color: <ColorPicker color={currentUser.color} setColor={(color) => {
-        setCurrentUser({ ...currentUser, color })
-      }} /><br />
+      Color: <ColorPicker color={color} setColor={setColor} /><br />
       <SaveChangesButton /><br />
       <AddUserButton />
     </div>
     <UserSwitcher
-      users={users.filter((user) => user.id != currentUser.id)}
-      onSwitch={(user) => {
-        setOldUser(user)
-        setCurrentUser(user)
+      users={users.filter((u) => u.id != user.id)}
+      onSwitch={(u) => {
+        setUser(u)
+        setName(u.name)
+        setColor(u.color)
       }}
       />
    </>
 }
+
+// const AppSwitcher: FC = () => {
+//   let apps = []
+// }
 
 const App: FC = () => {
   return <EditProfileApp />
