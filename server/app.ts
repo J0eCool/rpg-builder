@@ -11,12 +11,10 @@ app.use(express.text())
 app.get('/data/:filename', (req: Request, res: Response) => {
     const { filename } = req.params
     const pathname = path.join(__dirname, '../data', filename)
-    fs.readFile(pathname, 'utf8', (err, data) => {
+    res.sendFile(pathname, (err) => {
         if (err) {
             console.error(err)
             res.send(`error reading file at ${filename}`)
-        } else {
-            res.send(data)
         }
     })
 })
