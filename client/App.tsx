@@ -1,11 +1,15 @@
 import React, { FC, useEffect, useState } from "react"
 import { EditUserProfileApp } from "./EditUserProfileApp"
 import { ImageZoomerApp } from "./ImageZoomerApp"
+import { LoremIpsum } from "./LoremIpsum"
 
 const AppSwitcher: FC = () => {
   const apps = [{
     name: 'Image',
     component: ImageZoomerApp,
+  }, {
+    name: 'Lorem',
+    component: LoremIpsum,
   }, {
     name: 'Users',
     component: EditUserProfileApp,

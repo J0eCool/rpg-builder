@@ -1,26 +1,19 @@
 import React, { FC, useEffect, useState, useRef } from "react"
 import { LoremIpsum } from "./LoremIpsum"
-import Vec2 from "./Vec2"
-
-interface ImageItem {
-  image: HTMLImageElement
-  pos: Vec2
-}
+import { Vec2 } from "./Vec2"
+import { GameScene, Sprite } from "./GameScene"
 
 /**
  * application for recursively zooming into images
  */
 export const ImageZoomerApp = () => {
-  const items: ImageItem[] = []
+  const items: Sprite[] = []
   const addItem = (imageUrl: string, x: number, y: number) => {
     const image = new Image()
     image.src = imageUrl
-    items.push({
-      image,
-      pos: new Vec2(x, y),
-    })
+    items.push(new Sprite(image, new Vec2(x, y)))
   }
-  addItem('data/CLIPStudioPaint_4JJ9JlOab2.png', 600, 25)
+  addItem('data/CLIPStudioPaint_4JJ9JlOab2.png', 200, 25)
   addItem('data/CLIPStudioPaint_944WNH6JgV.png', 50, 450)
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -33,46 +26,24 @@ export const ImageZoomerApp = () => {
       return
     }
     const ctx = canvas.getContext('2d')!
-
-    let animFrameId: number
-    const halfCanvas = new Vec2(canvas.width, canvas.height).mul(0.5)
-    let camera = {
-      pos: halfCanvas,
-      zoom: 1,
-    }
-
-    const drawItem = (item: ImageItem) => {
-      // time for some camera maffs!
-      const size = new Vec2(item.image.width, item.image.height)
-      const halfSize = size.mul(0.5)
-      // camera pos is center-aligned, so make it consistent by 
-      const camTopLeft = camera.pos.sub(halfCanvas.div(camera.zoom))
-      const topLeft = item.pos.sub(camTopLeft).mul(camera.zoom)
-      const drawSize = size.mul(camera.zoom)
-      ctx.drawImage(item.image, topLeft.x, topLeft.y, drawSize.x, drawSize.y)
-    }
-
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-      for (let item of items) {
-        drawItem(item)
-      }
-
-      animFrameId = requestAnimationFrame(draw)
-    }
-    draw()
-
+    const canvasSize = new Vec2(canvas.width, canvas.height)
+        
+    let scene = new GameScene(canvasSize)
+    scene.children = items
+        
+    // Mouse wheel to Zoom
     canvas.onwheel = (ev) => {
       ev.preventDefault()
       // deltaY is either -100 (scroll up) or +100 (scroll down)
       const ratio = 1.25
       if (ev.deltaY > 0) {
-        camera.zoom /= ratio
+        scene.camera.zoom /= ratio
       } else {
-        camera.zoom *= ratio
+        scene.camera.zoom *= ratio
       }
     }
+
+    // Drag the camera around
     canvas.oncontextmenu = (ev) => {
       // prevents right-click from opening a context menu when over canvas
       return false
@@ -92,20 +63,30 @@ export const ImageZoomerApp = () => {
     canvas.onmousemove = (ev) => {
       ev.preventDefault()
       if (lastMousePos) {
-        let mousePos = new Vec2(ev.clientX, ev.clientY)
-        camera.pos = camera.pos.sub(mousePos.sub(lastMousePos).div(camera.zoom))
+        const mousePos = new Vec2(ev.clientX, ev.clientY)
+        const cam = scene.camera
+        cam.pos = cam.pos.sub(mousePos.sub(lastMousePos).div(cam.zoom))
         lastMousePos = mousePos
       }
     }
+    
+    let animFrameId: number
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      
+      scene.draw(ctx)
+      
+      animFrameId = requestAnimationFrame(draw)
+    }
+    draw()
 
     // cancel animation request when we unmount this app
     return () => {
       cancelAnimationFrame(animFrameId)
     }
   }, [])
-
+  
   return <>
     <canvas ref={canvasRef} width="1280px" height='920px' />
-    <LoremIpsum />
   </>
 }
