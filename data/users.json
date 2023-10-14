@@ -1,26 +1,31 @@
 [
   {
     "id": 0,
+    "name": "Anonymous",
+    "color": "green"
+  },
+  {
+    "id": 1,
     "name": "J0eCool",
     "color": "blue"
   },
   {
-    "id": 1,
+    "id": 2,
     "name": "j0",
     "color": "purple"
   },
   {
-    "id": 2,
+    "id": 3,
     "name": "J0-4N",
     "color": "red"
   },
   {
-    "id": 3,
+    "id": 4,
     "name": "j0keule",
     "color": "orange"
   },
   {
-    "id": 4,
+    "id": 5,
     "name": "CountJ0eCool",
     "color": "yellow"
   }
