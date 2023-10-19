@@ -1,4 +1,5 @@
-import React, { FC, useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
+import { ColorPicker } from "./ColorPicker"
 
 interface User {
   id: number,
@@ -71,26 +72,6 @@ const UserSwitcher = ({users, onSwitch}:
  */
 function nextUserId(users: User[]) {
   return 1 + users.reduce((id, user) => Math.max(id, user.id), 0)
-}
-
-const ColorPicker = ({color, setColor}:
-    {color: string, setColor: (color: string) => void}) => {
-  const colors = [
-    'black',
-    'red',
-    'blue',
-    'purple',
-    'orange',
-    'yellow',
-    'green',
-  ]
-  return <>
-    <span style={{color}}>{color}</span>
-    <br />
-    {colors.map((c, idx) => <button key={idx} onClick={() => setColor(c)}>
-      {c}
-    </button>)}
-  </>
 }
 
 /**
