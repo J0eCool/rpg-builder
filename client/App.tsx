@@ -5,50 +5,34 @@ import { LoremIpsum } from "./LoremIpsum"
 import { TestRunnerApp } from "./TestRunnerApp"
 
 const AppSwitcher: FC = () => {
-  const apps = [{
-    name: 'Image',
-    component: ImageZoomerApp,
-  }, {
-    name: 'Lorem',
-    component: LoremIpsum,
-  }, {
-    name: 'Users',
-    component: EditUserProfileApp,
-  }, {
-    name: 'Testing',
-    component: TestRunnerApp,
-  }]
-  const getLocalLastSelectedApp = () => {
-    const lastName = localStorage.getItem('lastSelectedApp')
-    if (lastName) {
-      for (let i = 0; i < apps.length; ++i) {
-        if (apps[i].name == lastName) {
-          return i
-        }
-      }
-    }
-    // if we can't find the last selected app by name, or if this is our first
-    // viewing of the page, just pick the first app as the default
-    return 0
+  interface Indexable<T> { [key: string]: T }
+  const apps: Indexable<FC> = {
+    'Image': ImageZoomerApp,
+    'Lorem': LoremIpsum,
+    'Users': EditUserProfileApp,
+    'Testing': TestRunnerApp,
   }
-  const setLocalLastSelectedApp = (idx: number) => {
-    localStorage.setItem('lastSelectedApp', apps[idx].name)
+  const getLocalLastSelectedApp = (): string => {
+    return localStorage.getItem('lastSelectedApp') ?? 'Image'
   }
-  let [selected, setSelected] = useState<number>(getLocalLastSelectedApp())
-  let current = apps[selected]
+  const setLocalLastSelectedApp = (name: string) => {
+    localStorage.setItem('lastSelectedApp', name)
+  }
+  let [selected, setSelected] = useState(getLocalLastSelectedApp())
+  let Current = apps[selected]
 
   return <>
     <div>
-      Switch app
-      {apps.map((app, idx) =>
-        <button key={idx} onClick={() => {
-          setLocalLastSelectedApp(idx)
-          setSelected(idx)
+      <span>Switch app</span>
+      {Object.keys(apps).map((name, idx) => <button
+        key={idx} onClick={() => {
+          setLocalLastSelectedApp(name)
+          setSelected(name)
         }}>
-          {app.name}
+          {name}
         </button>)}
     </div>
-    <current.component />
+    <Current />
   </>
 }
 
