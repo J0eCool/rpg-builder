@@ -23,9 +23,8 @@ export const ImageZoomerApp = () => {
       return
     }
     const ctx = canvas.getContext('2d')!
-    const canvasSize = new Vec2(canvas.width, canvas.height)
         
-    let scene = new GameScene(canvasSize)
+    let scene = new GameScene(canvas)
     scene.children = items
         
     // Mouse wheel to Zoom
@@ -69,9 +68,7 @@ export const ImageZoomerApp = () => {
     
     let animFrameId: number
     const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      
-      scene.draw(ctx)
+      scene.draw()
       
       animFrameId = requestAnimationFrame(draw)
     }

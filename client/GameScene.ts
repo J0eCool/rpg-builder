@@ -1,13 +1,18 @@
 import { Vec2 } from "./Vec2"
 
-export class Node {
-  children: Node[] = []
+export interface Time {
+  now: number
+  delta: number
 }
 
 export interface Camera {
   pos: Vec2
   bounds: Vec2
   zoom: number
+}
+
+export class Node {
+  children: Node[] = []
 }
 
 interface Drawable {
@@ -58,10 +63,14 @@ export class Sprite extends Node implements Drawable {
 }
 
 export class GameScene extends Node {
+  canvas: HTMLCanvasElement
   camera: Camera
+  update: (t: Time) => void = (_t) => {}
 
-  constructor(bounds: Vec2) {
+  constructor(canvas: HTMLCanvasElement) {
     super()
+    this.canvas = canvas
+    const bounds = new Vec2(canvas.width, canvas.height)
     this.camera = {
       pos: bounds.div(2),
       bounds,
@@ -69,7 +78,9 @@ export class GameScene extends Node {
     }
   }
 
-  draw(ctx: CanvasRenderingContext2D) {
+  draw() {
+    const ctx = this.canvas.getContext('2d')!
+    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
     for (let n of this.children) {
       if (isDrawable(n)) {
         n.draw(this.camera, ctx)
