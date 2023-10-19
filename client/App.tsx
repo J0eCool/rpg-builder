@@ -1,5 +1,6 @@
 import React, { FC, useEffect, useState } from "react"
 import { EditUserProfileApp } from "./EditUserProfileApp"
+import { CanvasDrawingApp } from "./CanvasDrawingApp"
 import { ImageZoomerApp } from "./ImageZoomerApp"
 import { LoremIpsum } from "./LoremIpsum"
 import { TestRunnerApp } from "./TestRunnerApp"
@@ -8,6 +9,7 @@ const AppSwitcher: FC = () => {
   interface Indexable<T> { [key: string]: T }
   const apps: Indexable<FC> = {
     'Image': ImageZoomerApp,
+    'Canvas': CanvasDrawingApp,
     'Lorem': LoremIpsum,
     'Users': EditUserProfileApp,
     'Testing': TestRunnerApp,

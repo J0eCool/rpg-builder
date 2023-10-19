@@ -1,5 +1,4 @@
 import React, { FC, useEffect, useState, useRef } from "react"
-import { LoremIpsum } from "./LoremIpsum"
 import { Vec2 } from "./Vec2"
 import { GameScene, Sprite } from "./GameScene"
 
@@ -9,9 +8,7 @@ import { GameScene, Sprite } from "./GameScene"
 export const ImageZoomerApp = () => {
   const items: Sprite[] = []
   const addItem = (imageUrl: string, x: number, y: number) => {
-    const image = new Image()
-    image.src = imageUrl
-    items.push(new Sprite(image, new Vec2(x, y)))
+    items.push(new Sprite(imageUrl, new Vec2(x, y)))
   }
   addItem('data/CLIPStudioPaint_4JJ9JlOab2.png', 200, 25)
   addItem('data/CLIPStudioPaint_944WNH6JgV.png', 50, 450)
