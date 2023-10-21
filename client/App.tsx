@@ -4,12 +4,14 @@ import { CanvasDrawingApp } from "./CanvasDrawingApp"
 import { ImageZoomerApp } from "./ImageZoomerApp"
 import { LoremIpsum } from "./LoremIpsum"
 import { TestRunnerApp } from "./TestRunnerApp"
+import { WebGPUApp } from "./WebGPUApp"
 
 const AppSwitcher: FC = () => {
   interface Indexable<T> { [key: string]: T }
   const apps: Indexable<FC> = {
     'Image': ImageZoomerApp,
     'Canvas': CanvasDrawingApp,
+    'WebGPU': WebGPUApp,
     'Lorem': LoremIpsum,
     'Users': EditUserProfileApp,
     'Testing': TestRunnerApp,

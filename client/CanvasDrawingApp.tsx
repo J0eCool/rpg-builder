@@ -22,8 +22,8 @@ const Slider = ({range=[0, 1], value, setValue, children}: {
 }
 
 /**
- * application for recursively zooming into images
-*/
+ * app for doing cool drawing + effects, pixel modification
+ */
 export const CanvasDrawingApp = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [effect0_p, setEffect0_p] = useState(0.1)
@@ -83,35 +83,39 @@ export const CanvasDrawingApp = () => {
       if (sprites.length == 0) return
     
       const src = sprites[0].imageData
-      const dest = sprites[1].imageData
       const r = Math.random
       
-      // EFFECT_0 shuffles the original, in position + color
-      const s = effect0_s
-      const v = effect0_v
-      const w = src.width
-      const h = src.height
-      for (let dy = 0; dy < h; ++dy) {
-        for (let dx = 0; dx < w; ++dx) {
-          if (r() > effect0_p) continue;
-          let sy = dy+(v*(r()-0.5)*h)|0
-          let sx = dx+(v*(r()-0.5)*w)|0
-          let di = (4 * (dx + dy*w))|0
-          let si = (4 * (sx + sy*w))|0
-          for (let k = 0; k < 3; ++k) {
-            let lhs = src.data[si+k]*s
-            let rhs = 255*r()*(1-s)
-            dest.data[di+k] = (lhs + rhs)|0
+      /** EFFECT_0 shuffles the original, in position + color */
+      function EFFECT_0(dest: ImageData) {
+        const s = effect0_s
+        const v = effect0_v
+        const w = src.width
+        const h = src.height
+        for (let dy = 0; dy < h; ++dy) {
+          for (let dx = 0; dx < w; ++dx) {
+            if (r() > effect0_p) continue;
+            let sy = dy+(v*(r()-0.5)*h)|0
+            let sx = dx+(v*(r()-0.5)*w)|0
+            let di = (4 * (dx + dy*w))|0
+            let si = (4 * (sx + sy*w))|0
+            for (let k = 0; k < 3; ++k) {
+              let lhs = src.data[si+k]*s
+              let rhs = 255*r()*(1-s)
+              dest.data[di+k] = (lhs + rhs)|0
+            }
+            dest.data[di+3] = src.data[si+3]
           }
-          dest.data[di+3] = src.data[si+3]
         }
       }
+
+      EFFECT_0(sprites[1].imageData)
+      EFFECT_0(sprites[3].imageData)
     }
   }
 
   return <>
     <canvas ref={canvasRef} width="900px" height="600px" />
-    <Slider value={effect0_p} setValue={setEffect0_p}>
+    <Slider value={effect0_p} setValue={setEffect0_p} >
       EFFECT_0:p
     </Slider>
     <Slider value={effect0_s} setValue={setEffect0_s} >

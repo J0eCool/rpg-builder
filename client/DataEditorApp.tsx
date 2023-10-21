@@ -39,7 +39,7 @@ export const DataEditorApp: FC = () => {
   }
 
   return <>
-    <SchemaPicker setSchema={setSchema} />
-    <DataEditor schema={schema} data={data} />
+    {/* <SchemaPicker setSchema={setSchema} />
+    <DataEditor schema={schema} data={data} /> */}
    </>
 }
