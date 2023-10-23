@@ -1,6 +1,7 @@
 import React, { FC, useEffect, useState, useRef } from "react"
 import { Vec2 } from "./Vec2"
 import { GameScene, Sprite, Time } from "./GameScene"
+import { clamp } from "./Util"
 
 const Slider = ({range=[0, 1], value, setValue, children}: {
   range?: number[],
@@ -31,6 +32,7 @@ export const CanvasDrawingApp = () => {
   const [effect0_v, setEffect0_v] = useState(0.035)
   const [sprites, setSprites] = useState<Sprite[]>([])
   const [scene, setScene] = useState<GameScene>()
+  const [buttonText, setButtonText] = useState("")
   useEffect(() => {
     const canvas = canvasRef.current
     
@@ -79,8 +81,31 @@ export const CanvasDrawingApp = () => {
   }, [])
 
   if (scene) {
-    scene.update = (_t: Time) => {
+    scene.update = (t: Time) => {
       if (sprites.length == 0) return
+
+      // controller support because I want to try the API
+      for (let gamepad of navigator.getGamepads()) {
+        if (gamepad) {
+          // axes go LH, LV, RH, RV
+          const dx = gamepad.axes[0]
+          const dy = gamepad.axes[1]
+          const deadzone = 0.1
+          if (Math.abs(dx) > deadzone) {
+            setEffect0_v(clamp(effect0_v + 0.3*dx*t.delta, 0, 1))
+          }
+          if (Math.abs(dy) > deadzone) {
+            setEffect0_s(clamp(effect0_s - dy*t.delta, 0, 1))
+          }
+
+          for (let i = 0; i < gamepad.buttons.length; ++i) {
+            const btn = gamepad.buttons[i]
+            if (btn.pressed) {
+              setButtonText(`pressed ${i}, ${btn.value}`)
+            }
+          }
+        }
+      }
     
       const src = sprites[0].imageData
       const r = Math.random
@@ -124,5 +149,6 @@ export const CanvasDrawingApp = () => {
     <Slider value={effect0_v} setValue={setEffect0_v} >
       EFFECT_0:v
     </Slider>
+    {buttonText}
   </>
 }
