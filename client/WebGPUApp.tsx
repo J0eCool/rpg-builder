@@ -59,6 +59,11 @@ export const WebGPUApp = () => {
       })
       device.queue.writeBuffer(vertexBuffer, 0, vertices)
 
+      const uniformBuffer = device.createBuffer({
+        size: 4,
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+      })
+
       // describes the data layout of the vertex data
       const vertexBuffers: GPUVertexBufferLayout[] = [{
         attributes: [{
@@ -74,7 +79,7 @@ export const WebGPUApp = () => {
         stepMode: 'vertex',
       }]
 
-      const bitmap = await fetchBitmap('data/SHAPE_2096.png')
+      const bitmap = await fetchBitmap('data/SHAPE_2198.png')
       const texture = device.createTexture({
         size: [bitmap.width, bitmap.height, 1],
         format: 'rgba8unorm',
@@ -114,8 +119,8 @@ export const WebGPUApp = () => {
       })
 
       const sampler = device.createSampler({
-        minFilter: 'nearest',
-        magFilter: 'nearest',
+        minFilter: 'linear',
+        magFilter: 'linear',
       })
 
       const texView = texture.createView()
@@ -128,6 +133,9 @@ export const WebGPUApp = () => {
         }, {
           binding: 1,
           resource: texture.createView(),
+        }, {
+          binding: 2,
+          resource: { buffer: uniformBuffer }
         }]
       })
 
@@ -155,18 +163,25 @@ export const WebGPUApp = () => {
         device.queue.submit([commandEncoder.finish()])
       }
 
-      let lastTick = performance.now()
+      let lastTime = performance.now()/1000
       const frame = () => {
-        const now = performance.now()
-        const dT = (now - lastTick) / 1000
-        lastTick = now
+        const now = performance.now()/1000
+        // const dT = now - lastTime
+        lastTime = now
 
+        device.queue.writeBuffer(uniformBuffer, 0,
+          new Float32Array([now]))
+  
         draw()
         
         shared.animFrameId = requestAnimationFrame(frame)
       }
       frame()
     })
+
+    canvas.ondblclick = () => {
+      canvas.requestFullscreen()
+    }
 
     // cancel animation request when we unmount this app
     return () => {
