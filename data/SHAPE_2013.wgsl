@@ -1,3 +1,5 @@
+// A custom shader for SHAPE_2013.png
+
 struct VertexIn {
   @location(0) pos: vec4f,
   @location(1) uv: vec2f,

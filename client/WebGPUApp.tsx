@@ -79,7 +79,7 @@ export const WebGPUApp = () => {
         stepMode: 'vertex',
       }]
 
-      const bitmap = await fetchBitmap('data/SHAPE_2198.png')
+      const bitmap = await fetchBitmap('data/SHAPE_2013.png')
       const texture = device.createTexture({
         size: [bitmap.width, bitmap.height, 1],
         format: 'rgba8unorm',
@@ -95,8 +95,7 @@ export const WebGPUApp = () => {
       )
 
       // set up the GPU Pipeline
-      // const shaderText = await fetchText('data/shader.wgsl')
-      const shaderText = await fetchText('data/SHAPE_2198.wgsl')
+      const shaderText = await fetchText('data/shader.wgsl')
       const shaderModule = device.createShaderModule({
         code: shaderText,
       })
