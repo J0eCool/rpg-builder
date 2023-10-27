@@ -95,28 +95,31 @@ export const WebGPUApp = () => {
       )
 
       // set up the GPU Pipeline
-      const shaderText = await fetchText('data/shader.wgsl')
-      const shaderModule = device.createShaderModule({
-        code: shaderText,
-      })
-      const renderPipeline = device.createRenderPipeline({
-        vertex: {
-          module: shaderModule,
-          entryPoint: 'vertex_main',
-          buffers: vertexBuffers,
-        },
-        fragment: {
-          module: shaderModule,
-          entryPoint: 'fragment_main',
-          targets: [{
-            format: navigator.gpu.getPreferredCanvasFormat(),
-          }]
-        },
-        primitive: {
-          topology: 'triangle-list',
-        },
-        layout: 'auto'
-      })
+      const createPipeline = async () => {
+        const shaderText = await fetchText('data/shader.wgsl')
+        const shaderModule = device.createShaderModule({
+          code: shaderText,
+        })
+        return device.createRenderPipeline({
+          vertex: {
+            module: shaderModule,
+            entryPoint: 'vertex_main',
+            buffers: vertexBuffers,
+          },
+          fragment: {
+            module: shaderModule,
+            entryPoint: 'fragment_main',
+            targets: [{
+              format: navigator.gpu.getPreferredCanvasFormat(),
+            }]
+          },
+          primitive: {
+            topology: 'triangle-list',
+          },
+          layout: 'auto'
+        })
+      }
+      let renderPipeline = await createPipeline()
 
       const sampler = device.createSampler({
         minFilter: 'linear',
@@ -196,6 +199,16 @@ export const WebGPUApp = () => {
 
       canvas.ondblclick = () => {
         canvas.requestFullscreen()
+      }
+      canvas.onclick = (ev) => {
+        createPipeline().then((pipeline) => {
+          renderPipeline = pipeline
+        })
+      }
+
+      const socket = new WebSocket('ws://localhost:1123')
+      socket.onopen = (ev) => {
+        socket.send('Hello websockets')
       }
   
       const zoomSpeed = 1.3

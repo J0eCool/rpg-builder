@@ -1,4 +1,5 @@
 import express, { Application, Request, Response } from 'express'
+import ws from 'ws'
 import fs from 'fs'
 import path from "path"
 import process from 'process'
@@ -34,6 +35,18 @@ app.put('/data/:filename', (req: Request, res: Response) => {
     })
 })
 
-app.listen(PORT, (): void => {
+const wsServer = new ws.Server({ noServer: true })
+wsServer.on('connection', (socket) => {
+    socket.on('message', (msg) => {
+        console.log('[WebSocket Server]:', msg)
+    })
+})
+
+const server = app.listen(PORT, (): void => {
     console.log('Server started on port', PORT)
+})
+server.on('upgrade', (req, socket, head) => {
+    wsServer.handleUpgrade(req, socket, head, (socket) => {
+        wsServer.emit('connection', socket, req);
+    })
 })
