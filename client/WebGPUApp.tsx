@@ -60,7 +60,7 @@ export const WebGPUApp = () => {
       device.queue.writeBuffer(vertexBuffer, 0, vertices)
 
       const uniformBuffer = device.createBuffer({
-        size: 4,
+        size: 8,
         usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
       })
 
@@ -95,7 +95,8 @@ export const WebGPUApp = () => {
       )
 
       // set up the GPU Pipeline
-      const shaderText = await fetchText('data/shader.wgsl')
+      // const shaderText = await fetchText('data/shader.wgsl')
+      const shaderText = await fetchText('data/SHAPE_2198.wgsl')
       const shaderModule = device.createShaderModule({
         code: shaderText,
       })
@@ -123,8 +124,6 @@ export const WebGPUApp = () => {
         magFilter: 'linear',
       })
 
-      const texView = texture.createView()
-      texView.label = 'image'
       const uniformBindGroup = device.createBindGroup({
         layout: renderPipeline.getBindGroupLayout(0),
         entries: [{
@@ -164,24 +163,49 @@ export const WebGPUApp = () => {
       }
 
       let lastTime = performance.now()/1000
+      let zoom = 2.0
+      let zoomTarget = zoom
       const frame = () => {
         const now = performance.now()/1000
-        // const dT = now - lastTime
+        const dT = now - lastTime
         lastTime = now
 
+        // Zoom based on logarithms
+        // This is probably overengineered and janky, but it feels correct-ish
+        let ratio = zoomTarget/zoom
+        ratio = Math.max(ratio, 1/ratio)
+        if (ratio > 1.001) {
+          const zoomLogSpeed = -1.5*(1-Math.pow(ratio,2))
+          const delta = Math.log(zoomTarget) - Math.log(zoom)
+          const logZoomDelta = Math.sign(delta)*zoomLogSpeed*dT
+          const nextZoom = Math.pow(Math.E, Math.log(zoom) + logZoomDelta)
+          if (Math.abs(delta) < zoomLogSpeed*dT) {
+            zoom = zoomTarget
+          } else {
+            zoom = nextZoom
+          }
+        }
+
         device.queue.writeBuffer(uniformBuffer, 0,
-          new Float32Array([now]))
+          new Float32Array([now, zoom]))
   
         draw()
         
         shared.animFrameId = requestAnimationFrame(frame)
       }
       frame()
-    })
 
-    canvas.ondblclick = () => {
-      canvas.requestFullscreen()
-    }
+      canvas.ondblclick = () => {
+        canvas.requestFullscreen()
+      }
+  
+      const zoomSpeed = 1.3
+      canvas.onwheel = (ev) => {
+        const dy = ev.deltaY/100;
+        zoomTarget *= dy < 0 ? zoomSpeed : 1/zoomSpeed;
+        ev.preventDefault()
+      }
+    })  
 
     // cancel animation request when we unmount this app
     return () => {
