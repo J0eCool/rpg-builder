@@ -59,11 +59,6 @@ export const WebGPUApp = () => {
       })
       device.queue.writeBuffer(vertexBuffer, 0, vertices)
 
-      const uniformBuffer = device.createBuffer({
-        size: 8,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      })
-
       // describes the data layout of the vertex data
       const vertexBuffers: GPUVertexBufferLayout[] = [{
         attributes: [{
@@ -79,94 +74,160 @@ export const WebGPUApp = () => {
         stepMode: 'vertex',
       }]
 
-      const bitmap = await fetchBitmap('data/SHAPE_2013.png')
-      const texture = device.createTexture({
-        size: [bitmap.width, bitmap.height, 1],
-        format: 'rgba8unorm',
-        usage:
-          GPUTextureUsage.TEXTURE_BINDING |
-          GPUTextureUsage.COPY_DST |
-          GPUTextureUsage.RENDER_ATTACHMENT,
-      })
-      device.queue.copyExternalImageToTexture(
-        { source: bitmap },
-        { texture },
-        [bitmap.width, bitmap.height]
-      )
-
-      // set up the GPU Pipeline
-      const createPipeline = async () => {
-        const shaderText = await fetchText('data/shader.wgsl')
-        const shaderModule = device.createShaderModule({
-          code: shaderText,
-        })
-        return device.createRenderPipeline({
-          vertex: {
-            module: shaderModule,
-            entryPoint: 'vertex_main',
-            buffers: vertexBuffers,
-          },
-          fragment: {
-            module: shaderModule,
-            entryPoint: 'fragment_main',
-            targets: [{
-              format: navigator.gpu.getPreferredCanvasFormat(),
-            }]
-          },
-          primitive: {
-            topology: 'triangle-list',
-          },
-          layout: 'auto'
-        })
-      }
-      let renderPipeline = await createPipeline()
-
       const sampler = device.createSampler({
         minFilter: 'linear',
         magFilter: 'linear',
       })
-
-      const uniformBindGroup = device.createBindGroup({
-        layout: renderPipeline.getBindGroupLayout(0),
-        entries: [{
-          binding: 0,
-          resource: sampler,
-        }, {
-          binding: 1,
-          resource: texture.createView(),
-        }, {
-          binding: 2,
-          resource: { buffer: uniformBuffer }
-        }]
+      const uniformBuffer = device.createBuffer({
+        size: 16,
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
       })
+
+      class Scene {
+        img: string
+        shader: string
+        pos: Vec2
+
+        device: GPUDevice
+        pipeline: GPURenderPipeline | null
+        texture: GPUTexture | null
+        uniformBindGroup: GPUBindGroup | null
+
+        constructor(device: GPUDevice, img: string, shader: string, pos: Vec2) {
+          this.img = img
+          this.shader = shader
+          this.pos = pos
+
+          this.device = device
+          this.pipeline = null
+          this.texture = null
+          this.uniformBindGroup = null
+        }
+
+        async load() {
+          await this.loadTexture()
+          await this.loadPipeline()
+
+          this.uniformBindGroup = device.createBindGroup({
+            layout: this.pipeline!.getBindGroupLayout(0),
+            entries: [{
+              binding: 0,
+              resource: sampler,
+            }, {
+              binding: 1,
+              resource: this.texture!.createView(),
+            }, {
+              binding: 2,
+              resource: { buffer: uniformBuffer }
+            }]
+          })
+        }
+
+        async loadTexture() {
+          const bitmap = await fetchBitmap(this.img)
+          this.texture = this.device.createTexture({
+            size: [bitmap.width, bitmap.height, 1],
+            format: 'rgba8unorm',
+            usage:
+              GPUTextureUsage.TEXTURE_BINDING |
+              GPUTextureUsage.COPY_DST |
+              GPUTextureUsage.RENDER_ATTACHMENT,
+          })
+          this.device.queue.copyExternalImageToTexture(
+            { source: bitmap },
+            { texture: this.texture },
+            [bitmap.width, bitmap.height]
+          )
+        }
+
+        async loadPipeline() {
+          const shaderText = await fetchText(this.shader)
+          const shaderModule = this.device.createShaderModule({
+            code: shaderText,
+          })
+          this.pipeline = this.device.createRenderPipeline({
+            vertex: {
+              module: shaderModule,
+              entryPoint: 'vertex_main',
+              buffers: vertexBuffers,
+            },
+            fragment: {
+              module: shaderModule,
+              entryPoint: 'fragment_main',
+              targets: [{
+                format: navigator.gpu.getPreferredCanvasFormat(),
+              }]
+            },
+            primitive: {
+              topology: 'triangle-list',
+            },
+            layout: 'auto'
+          })
+        }
+      }
+
+      const sceneData = [{
+        image: 'data/PIC_1.png',
+        shader: 'data/shader.wgsl',
+        pos: new Vec2(-0.5, -0.5),
+      }, {
+        image: 'data/SHAPE_2013.png',
+        shader: 'data/SHAPE_2013.wgsl',
+        pos: new Vec2(0.5, -0.5),
+      }, {
+        image: 'data/SHAPE_2196.png',
+        shader: 'data/SHAPE_2198.wgsl',
+        pos: new Vec2(-0.5, 0.5),
+      }, {
+        image: 'data/SHAPE_2197.png',
+        shader: 'data/SHAPE_2198.wgsl',
+        pos: new Vec2(0.0, 1.5),
+      }, {
+        image: 'data/SHAPE_2198.png',
+        shader: 'data/SHAPE_2198.wgsl',
+        pos: new Vec2(0.5, 0.5),
+      }]
+      const scenes = sceneData.map(
+        data => new Scene(device, data.image, data.shader, data.pos)
+      )
+      for (let scene of scenes) {
+        await scene.load()
+      }
 
       // -----------------------------------------------------------
 
-      const draw = () => {
+      let zoom = 1.0
+      let camera = new Vec2(0, 0)
+      const draw = (now: number) => {
         // device.label = `draw-${shared.animFrameId}`
 
-        const commandEncoder = device.createCommandEncoder()
-
-        const pass = commandEncoder.beginRenderPass({
-          colorAttachments: [{
-            clearValue: { r: 0.0, g: 0.2, b: 0.3, a: 1.0 },
-            loadOp: 'clear' as GPULoadOp,
-            storeOp: 'store' as GPUStoreOp,
-            view: ctx.getCurrentTexture().createView(),
-          }],
-        })
-        pass.setPipeline(renderPipeline)
-        pass.setBindGroup(0, uniformBindGroup)
-        pass.setVertexBuffer(0, vertexBuffer)
-        pass.draw(6)
-        pass.end()
         
-        device.queue.submit([commandEncoder.finish()])
+        for (let scene of scenes) {
+          const commandEncoder = device.createCommandEncoder()
+          const pos = scene.pos.sub(camera)
+          device.queue.writeBuffer(uniformBuffer, 0,
+            new Float32Array([now, zoom, pos.x, pos.y]))
+
+          const pass = commandEncoder.beginRenderPass({
+            colorAttachments: [{
+              // clearValue: { r: 0.0, g: 0.2, b: 0.3, a: 1.0 },
+              loadOp: 'load' as GPULoadOp,
+              storeOp: 'store' as GPUStoreOp,
+              view: ctx.getCurrentTexture().createView(),
+            }],
+          })
+          pass.setPipeline(scene.pipeline!)
+          pass.setBindGroup(0, scene.uniformBindGroup!)
+          pass.setVertexBuffer(0, vertexBuffer)
+          pass.draw(6)
+          pass.end()
+          device.queue.submit([commandEncoder.finish()])
+        }
+        
       }
 
-      let lastTime = performance.now()/1000
-      let zoom = 2.0
       let zoomTarget = zoom
+      let lastTime = performance.now()/1000
       const frame = () => {
         const now = performance.now()/1000
         const dT = now - lastTime
@@ -191,7 +252,7 @@ export const WebGPUApp = () => {
         device.queue.writeBuffer(uniformBuffer, 0,
           new Float32Array([now, zoom]))
   
-        draw()
+        draw(now)
         
         shared.animFrameId = requestAnimationFrame(frame)
       }
@@ -200,10 +261,32 @@ export const WebGPUApp = () => {
       canvas.ondblclick = () => {
         canvas.requestFullscreen()
       }
-      canvas.onclick = (ev) => {
-        createPipeline().then((pipeline) => {
-          renderPipeline = pipeline
-        })
+      // canvas.onclick = (ev) => {
+      //   loadPipeline().then((pipeline) => {
+      //     renderPipeline = pipeline
+      //   })
+      // }
+
+      let mousePos: Vec2|null = null
+      const ev2pos = (ev: MouseEvent) => new Vec2(ev.clientX, ev.clientY)
+      canvas.onmousedown = (ev) => {
+        mousePos = ev2pos(ev)
+        ev.preventDefault()
+      }
+      canvas.onmouseup = (ev) => {
+        mousePos = null
+        ev.preventDefault()
+      }
+      canvas.onmousemove = (ev) => {
+        if (mousePos) {
+          const cur = ev2pos(ev)
+          camera = camera.sub(cur.sub(mousePos)
+            .mul(new Vec2(2, -2)
+            .div(zoom)
+            .div(new Vec2(canvas.width, canvas.height))))
+          mousePos = cur
+          ev.preventDefault()
+        }
       }
 
       const socket = new WebSocket('ws://localhost:1123')

@@ -8,6 +8,7 @@ struct VertexIn {
 struct Uniforms {
   time: f32,
   zoom: f32,
+  pos: vec2f,
 }
 
 @group(0) @binding(0) var mySampler: sampler;
@@ -22,7 +23,8 @@ struct VertexOut {
 @vertex
 fn vertex_main(in: VertexIn) -> VertexOut {
   var out : VertexOut;
-  out.pos = in.pos * vec4(vec3(uniforms.zoom), 1.0);
+  let pos = in.pos + vec4(uniforms.pos, 0.0, 0.0);
+  out.pos = pos * vec4(vec3(uniforms.zoom), 1.0);
   out.uv = in.uv.xy;
   return out;
 }
