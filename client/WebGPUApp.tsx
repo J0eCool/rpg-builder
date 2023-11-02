@@ -290,10 +290,18 @@ export const WebGPUApp = () => {
       }
 
       const socket = new WebSocket('ws://localhost:1123')
-      socket.onopen = (ev) => {
-        socket.send('Hello websockets')
+      socket.onmessage = (ev) => {
+        // reload shaders when server says they've changed
+        if (ev.data.startsWith('changed:')) {
+          const filename = ev.data.slice('changed:'.length)
+          for (let scene of scenes) {
+            if (scene.shader == filename) {
+              scene.loadPipeline()
+            }
+          }
+        }
       }
-  
+      
       const zoomSpeed = 1.3
       canvas.onwheel = (ev) => {
         const dy = ev.deltaY/100;
@@ -301,7 +309,7 @@ export const WebGPUApp = () => {
         ev.preventDefault()
       }
     })  
-
+    
     // cancel animation request when we unmount this app
     return () => {
       cancelAnimationFrame(shared.animFrameId)

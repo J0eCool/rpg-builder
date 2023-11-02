@@ -35,10 +35,12 @@ app.put('/data/:filename', (req: Request, res: Response) => {
     })
 })
 
+const openSockets: ws[] = []
 const wsServer = new ws.Server({ noServer: true })
 wsServer.on('connection', (socket) => {
+    openSockets.push(socket)
     socket.on('message', (msg) => {
-        console.log('[WebSocket Server]:', msg)
+        console.log('[wsServer]:', msg)
     })
 })
 
@@ -47,6 +49,21 @@ const server = app.listen(PORT, (): void => {
 })
 server.on('upgrade', (req, socket, head) => {
     wsServer.handleUpgrade(req, socket, head, (socket) => {
-        wsServer.emit('connection', socket, req);
+        wsServer.emit('connection', socket, req)
     })
+})
+
+const lastChanged = new Map<string, number>()
+const watcher = fs.watch('data/')
+watcher.on('change', (ev: string, filename: string) => {
+    // filesystem gets events up to 4x; filter rapid repeats to avoid
+    // extraneous websocket spam
+    const last = lastChanged.get(filename) ?? 0
+    if (Date.now() - last > 100) {
+        console.log('file changed:', ev, filename, Date.now())
+        lastChanged.set(filename, Date.now())
+        for (const socket of openSockets) {
+            socket.send('changed:data/' + filename)
+        }
+    }
 })
