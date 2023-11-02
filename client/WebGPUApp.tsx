@@ -124,15 +124,21 @@ export const WebGPUApp = () => {
         }
 
         async loadTexture() {
+          console.log('loading texture', this.img)
           const bitmap = await fetchBitmap(this.img)
-          this.texture = this.device.createTexture({
-            size: [bitmap.width, bitmap.height, 1],
-            format: 'rgba8unorm',
-            usage:
-              GPUTextureUsage.TEXTURE_BINDING |
-              GPUTextureUsage.COPY_DST |
-              GPUTextureUsage.RENDER_ATTACHMENT,
-          })
+          if (!this.texture) {
+            this.texture = this.device.createTexture({
+              size: [bitmap.width, bitmap.height, 1],
+              format: 'rgba8unorm',
+              usage:
+                GPUTextureUsage.TEXTURE_BINDING |
+                GPUTextureUsage.COPY_DST |
+                GPUTextureUsage.RENDER_ATTACHMENT,
+            })
+          }
+          if (this.texture.width != bitmap.width || this.texture.height != bitmap.height) {
+            throw new Error(`texture size inconsistency: ${this.img}`)
+          }
           this.device.queue.copyExternalImageToTexture(
             { source: bitmap },
             { texture: this.texture },
@@ -141,6 +147,7 @@ export const WebGPUApp = () => {
         }
 
         async loadPipeline() {
+          console.log('loading shader', this.shader)
           const shaderText = await fetchText(this.shader)
           const shaderModule = this.device.createShaderModule({
             code: shaderText,
@@ -186,6 +193,10 @@ export const WebGPUApp = () => {
         image: 'data/SHAPE_2198.png',
         shader: 'data/SHAPE_2198.wgsl',
         pos: new Vec2(0.5, 0.5),
+      }, {
+        image: 'data/SHAPE_2099.png',
+        shader: 'data/shader.wgsl',
+        pos: new Vec2(1.5, 0.0),
       }]
       const scenes = sceneData.map(
         data => new Scene(device, data.image, data.shader, data.pos)
@@ -297,6 +308,8 @@ export const WebGPUApp = () => {
           for (let scene of scenes) {
             if (scene.shader == filename) {
               scene.loadPipeline()
+            } else if (scene.img == filename) {
+              scene.loadTexture()
             }
           }
         }
