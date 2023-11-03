@@ -173,33 +173,15 @@ export const WebGPUApp = () => {
         }
       }
 
-      const sceneData = [{
-        image: 'data/PIC_1.png',
-        shader: 'data/shader.wgsl',
-        pos: new Vec2(-0.5, -0.5),
-      }, {
-        image: 'data/SHAPE_2013.png',
-        shader: 'data/SHAPE_2013.wgsl',
-        pos: new Vec2(0.5, -0.5),
-      }, {
-        image: 'data/SHAPE_2196.png',
-        shader: 'data/SHAPE_2198.wgsl',
-        pos: new Vec2(-0.5, 0.5),
-      }, {
-        image: 'data/SHAPE_2197.png',
-        shader: 'data/SHAPE_2198.wgsl',
-        pos: new Vec2(0.0, 1.5),
-      }, {
-        image: 'data/SHAPE_2198.png',
-        shader: 'data/SHAPE_2198.wgsl',
-        pos: new Vec2(0.5, 0.5),
-      }, {
-        image: 'data/SHAPE_2099.png',
-        shader: 'data/shader.wgsl',
-        pos: new Vec2(1.5, 0.0),
-      }]
+      interface SceneData {
+        image: string
+        shader: string
+        pos: number[]
+      }
+      const sceneData: SceneData[] = await fetch('data/scenes.json').then((x) => x.json())
       const scenes = sceneData.map(
-        data => new Scene(device, data.image, data.shader, data.pos)
+        data => new Scene(device, data.image, data.shader,
+          new Vec2(data.pos[0], data.pos[1]))
       )
       for (let scene of scenes) {
         await scene.load()

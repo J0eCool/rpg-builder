@@ -1,0 +1,25 @@
+[{
+    "image": "data/PIC_1.png",
+    "shader": "data/shader.wgsl",
+    "pos": [-0.5, -0.5]
+}, {
+    "image": "data/SHAPE_2013.png",
+    "shader": "data/SHAPE_2013.wgsl",
+    "pos": [0.5, -0.5]
+}, {
+    "image": "data/SHAPE_2196.png",
+    "shader": "data/SHAPE_2198.wgsl",
+    "pos": [-0.5, 0.5]
+}, {
+    "image": "data/SHAPE_2197.png",
+    "shader": "data/SHAPE_2198.wgsl",
+    "pos": [-1.5, 1.5]
+}, {
+    "image": "data/SHAPE_2198.png",
+    "shader": "data/SHAPE_2198.wgsl",
+    "pos": [0.5, 0.5]
+}, {
+    "image": "data/SHAPE_2099.png",
+    "shader": "data/shader.wgsl",
+    "pos": [1.5, 0.0]
+}]

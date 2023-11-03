@@ -1,6 +1,6 @@
 import { test, testCases, expect } from './Testing'
 
-export type SchemaType = 'String' | 'Int'
+export type SchemaType = 'String' | 'Int' | 'Vec2'
 
 export interface Schema {
   url: string
@@ -17,8 +17,14 @@ function validateType(type: SchemaType, value: any): boolean {
     case 'String':
       return typeof value == 'string'
     case 'Int':
-      if (typeof value !== 'number') return false
+      if (typeof value != 'number') return false
       return value === Math.floor(value)
+    case 'Vec2':
+      if (!Array.isArray(value)) return false
+      if (value.length != 2) return false
+      if (typeof value[0] != 'number') return false
+      if (typeof value[1] != 'number') return false
+      return true
   }
 }
 
@@ -51,6 +57,14 @@ testCases(validateType, [
   [['Int', 123], true],
   [['Int', '456'], false],
   [['Int', 3.1415], false],
+
+  [['Vec2', [0, 1]], true],
+  [['Vec2', [1, 2, 3]], false],
+  [['Vec2', ['0', 1]], false],
+  [['Vec2', [1, '0']], false],
+  [['Vec2', 12], false],
+  [['Vec2', '12'], false],
+  [['Vec2', '[1,2]'], false],
 ])
 
 test('Schema.isValid', () => {

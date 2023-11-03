@@ -5,6 +5,7 @@ import { ImageZoomerApp } from "./ImageZoomerApp"
 import { LoremIpsum } from "./LoremIpsum"
 import { TestRunnerApp } from "./TestRunnerApp"
 import { WebGPUApp } from "./WebGPUApp"
+import { DataEditorApp } from "./DataEditorApp"
 
 const AppSwitcher: FC = () => {
   interface Indexable<T> { [key: string]: T }
@@ -14,6 +15,7 @@ const AppSwitcher: FC = () => {
     'WebGPU': WebGPUApp,
     'Lorem': LoremIpsum,
     'Users': EditUserProfileApp,
+    'Data': DataEditorApp,
     'Testing': TestRunnerApp,
   }
   const getLocalLastSelectedApp = (): string => {
