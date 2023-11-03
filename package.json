@@ -1,7 +1,7 @@
 {
-  "name": "jrpg-builder",
+  "name": "rpg-builder",
   "version": "1.0.0",
-  "description": "IDE for making FF-style retro games",
+  "description": "IDE+engine for whatever RPGs I'm making",
   "scripts": {
     "build": "tsc --watch --preserveWatchOutput",
     "webpack": "npx webpack -w",
