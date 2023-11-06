@@ -48,13 +48,14 @@ fn fragment_main(in: VertexOut) -> @location(0) vec4f {
   let y = p.y;
   let t = uniforms.time;
 
-  let reps = 0.44*vec2(1.3, 0.7)/pow(r+0.1,2.0);
-  let spd = 0.3*vec2(0.83, -1.03);
+  let reps = 0.5*vec2(1.3, 0.7)/pow(r+0.1,2.0);
+  let spd = 1.3*vec2(0.83, -1.03);
   let pix = sin(TAU*reps*p + spd*t);
-  let ripple = sin(0.2*TAU*t + 1.4*pix.x*pix.y/(1.2+r)) * (1.0-r);
+  let ripple = 0.5 + 0.5* sin(0.5*TAU*t + 1.4*pix.x*pix.y/(1.2+r)) * (1.0-r);
 
-  var u = sin(0.3*TAU*t + 2.0*TAU*c)*ripple;
-  u = c*0.6 + 0.4*u;
+  var u = sin(0.3*TAU*t + 2.0*TAU*c + PI*ripple);
+  // var u = c * ripple;
+  // u = c*0.6 + 0.4*u;
   u.a = c.a;
   c = u;
   return c;
