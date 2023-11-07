@@ -49,11 +49,40 @@ export const DataEditorApp: FC = () => {
 
   return <>
     {/* <SchemaPicker setSchema={setSchema} /> */}
-    <DataEditor schema={schema} data={data} />
+    <DataEditor schema={schema} data={data} updateElem={(idx, elem) => {
+      const clone = Array.from(data)
+      clone[idx] = elem
+      setData(clone)
+      syncToServer()
+    }} />
    </>
 }
 
-const DataEditor = ({schema, data}: {schema: Schema, data: any[]}) => {
+const FieldEditor = ({value, setValue, type}: any) => {
+  switch (type){
+    case 'String':
+    case 'Int':
+      return <input value={value} onChange={(ev) => {
+        let v = ev.target.value
+        setValue(type == 'Int' ? (+v|0) : v)
+      }} />
+    case 'Vec2':
+      const setVec = (ev: React.ChangeEvent<HTMLInputElement>, n: number) => {
+        let c = Array.from(value)
+        c[n] = +ev.target.value
+        setValue(c)
+      }
+      return <>
+        <input value={value[0]} onChange={(ev) => setVec(ev, 0)} />
+        <input value={value[1]} onChange={(ev) => setVec(ev, 1)} />
+      </>
+  }
+}
+
+const DataEditor = ({schema, data, updateElem}:
+    { schema: Schema,
+      data: any[],
+      updateElem: (idx: number, elem: any) => void}) => {
   return <>
     <table>
       <thead>
@@ -63,10 +92,16 @@ const DataEditor = ({schema, data}: {schema: Schema, data: any[]}) => {
         </tr>
       </thead>
       <tbody>
-        {data.map((elem, idx) =>
-          <tr key={idx}>
+        {data.map((elem, elem_idx) =>
+          <tr key={elem_idx}>
             {schema.fields.map(({name, type}, idx) =>
-              <td key={idx}>{elem[name]}</td>)}
+              <td key={idx}>
+                <FieldEditor value={elem[name]} type={type}
+                  setValue={(value: any) => {
+                    elem[name] = value
+                    updateElem(elem_idx, elem)
+                  }} />
+              </td>)}
           </tr>)}
       </tbody>
     </table>
