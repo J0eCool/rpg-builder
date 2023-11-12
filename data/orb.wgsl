@@ -62,19 +62,19 @@ fn fragment_main(in: VertexOut) -> @location(0) vec4f {
   let y = p.y;
   let t = uniforms.time;
 
-  let theta = atan2(y, x);
-  var q = sin(2.0*TAU*r + 3.0*theta + t);
-  if (q > 0.0) {
-    q = 1.0;
-  } else {
-    q = 0.0;
-  }
-  c = vec4(
-    wave(x + asin(r)),
-    q,
-    0.0,
-    1.0
+  var a = vec4(
+    wave(1.0*y*r+t),
+    wave(3.0*x*r-y+t),
+    wave(2.0*y*r+x+t),
+    wave(4.0*r),
   );
+  var b = vec4(
+    wave(6.0*y*r+t),
+    wave(7.0*x*r-y+t),
+    wave(8.0*y*r+x+t),
+    wave(4.0*r),
+  );
+  c *= qmul(a, b);
 
   return c;
 }
